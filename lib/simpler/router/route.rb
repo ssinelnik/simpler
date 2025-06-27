@@ -8,13 +8,32 @@ module Simpler
 
       def initialize(method, path, controller, action)
         @method = method
-        @path = path
         @controller = controller
         @action = action
+
+        @pattern = /\A#{pattern(path)}\z/
       end
 
       def match?(method, path)
-        @method == method && path.match(@path)
+        return false unless @method == method
+        @match_data = @pattern.match(path)
+      end
+
+      # Преобразует строку маршрута с динамическими параметрами
+      def pattern(path)
+        path.split('/').map do |segment|
+          if segment.start_with?(':')
+            name = segment[1..-1]
+            "(?<#{name}>[^/]+)"
+          else
+            Regexp.escape(segment)
+          end
+        end.join('/')
+      end
+
+      def params
+        return {} unless @match_data
+        @match_data.named_captures.transform_keys(&:to_sym)
       end
     end
   end

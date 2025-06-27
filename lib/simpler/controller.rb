@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require_relative 'view'
 
 module Simpler
@@ -11,6 +12,11 @@ module Simpler
       @name = extract_name
       @request = Rack::Request.new(env)
       @response = Rack::Response.new
+      @route_params = env['simpler.route_params'] || {}
+    end
+
+    def params
+      @route_params.merge(@request.params.transform_keys(&:to_sym))
     end
 
     def make_response(action)
@@ -30,22 +36,48 @@ module Simpler
       self.class.name.match('(?<name>.+)Controller')[:name].downcase
     end
 
+    def headers
+      @response.headers
+    end
+
     def set_default_headers
-      @response['Content-Type'] = 'text/html'
+      @response['Content-Type'] ||= 'text/html'
     end
 
     def write_response
-      body = render_body
-
-      @response.write(body)
+      content = if defined?(@body) && @body
+                  @body
+                else
+                  render_body
+                end
+      @response.write(content)
     end
 
     def render_body
       View.new(@request.env).render(binding)
     end
 
-    def render(template)
-      @request.env['simpler.template'] = template
+    def render(spec = nil)
+      case spec
+      when Hash
+        if spec.key?(:plain)
+          @response['Content-Type'] ='text/plain'
+          @body = spec[:plain].to_s
+        elsif spec.key?(:json)
+          @response['Content-Type'] = 'application/json'
+          @body = spec[:json].to_json
+        else
+          raise ArgumentError, "Unsupported render format: #{spec.keys.inspect}"
+        end
+      when String, Symbol
+        @request.env['simpler.template'] = spec.to_s
+      else
+        raise ArgumentError, "Invalid render argument: #{spec.inspect}"
+      end
+    end
+
+    def status(code)
+      @response.status = code.to_i
     end
   end
 end

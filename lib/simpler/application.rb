@@ -26,6 +26,13 @@ module Simpler
 
     def call(env)
       route = @router.route_for(env)
+
+      unless route
+        return not_found_response
+      end
+
+      env['simpler.route_params'] = route.params
+
       controller = route.controller.new(env)
       action = route.action
 
@@ -37,6 +44,11 @@ module Simpler
     end
 
     private
+
+    def not_found_response
+      body = "404 Not Found"
+      Rack::Response.new(body, 404, 'Content-Type' => 'text/plain').finish
+    end
 
     def require_app
       Dir["#{Simpler.root}/app/**/*.rb"].sort.each { |file| require file }
