@@ -60,3 +60,6 @@ build-iPhoneSimulator/
 
 # Ignoring database file
 /db/simpler.sqlite
+
+# Ignoring the .log file (created automatically)
+/log/app.log
