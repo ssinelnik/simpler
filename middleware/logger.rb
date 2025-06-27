@@ -18,9 +18,6 @@ class AppLogger
     full_path = request.fullpath
     params_hash = request.params
 
-    # @logger.info("#{env['REQUEST_METHOD']} #{env['PATH_INFO']} - #{Time.now}")
-    # @app.call(env)
-
     route = Simpler.application.send(:instance_variable_get, :@router)
                        .route_for(env)
     handler_name = if route
@@ -35,15 +32,17 @@ class AppLogger
 
     status, headers, body = @app.call(env)
 
-    @logger.info("Request: #{http_method} #{full_path}")
-    @logger.info("Handler: #{handler_name}")
-    @logger.info("Parameters: #{params_hash.inspect}")
+    status_text = "#{status} #{Rack::Utils::HTTP_STATUS_CODES[status] || 'Unknown'}"
+    content_type = headers['Content-Type'] || 'unknown'
 
-    status, headers, body = @app.call(env)
+    template_name = env['simpler.template']
+    template_part = if template_name
+                      " #{template_name}.html.erb"
+                    else
+                      ""
+                    end
 
-    @logger.info("Response: #{status} [#{content_type}]#{template_file ? " #{template_file}" : ''}")
-    # @logger.info("Response: #{status}")
-
+    @logger.info("Response: #{status_text} [#{content_type}]#{template_part}")
 
     [status, headers, body]
   end
