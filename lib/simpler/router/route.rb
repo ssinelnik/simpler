@@ -8,10 +8,10 @@ module Simpler
 
       def initialize(method, path, controller, action)
         @method = method
-        @path = path
-        @pattern = Regexp.new(pattern(path))
         @controller = controller
         @action = action
+
+        @pattern = /\A#{pattern(path)}\z/
       end
 
       def match?(method, path)
@@ -19,12 +19,16 @@ module Simpler
         @match_data = @pattern.match(path)
       end
 
+      # Преобразует строку маршрута с динамическими параметрами
       def pattern(path)
-        '^' +
-          path
-            .gsub('.', '\.')
-            .gsub(/:(\w+)/, '(?<\1>[^/]+)')
-            + '$'
+        path.split('/').map do |segment|
+          if segment.start_with?(':')
+            name = segment[1..-1]
+            "(?<#{name}>[^/]+)"
+          else
+            Regexp.escape(segment)
+          end
+        end.join('/')
       end
 
       def params
