@@ -31,6 +31,10 @@ module Simpler
       self.class.name.match('(?<name>.+)Controller')[:name].downcase
     end
 
+    def headers
+      @response.headers
+    end
+
     def set_default_headers
       @response['Content-Type'] ||= 'text/html'
     end
