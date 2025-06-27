@@ -13,4 +13,10 @@ class TestsController < Simpler::Controller
     headers['X-Correlation-ID'] = request.params['id']
     render plain: "Resource not found"
   end
+
+  def show
+    test_id = params[:id]
+    @test = Test[test_id]
+    render plain: "Test ID is #{test_id}"
+  end
 end

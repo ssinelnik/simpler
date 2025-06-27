@@ -9,12 +9,27 @@ module Simpler
       def initialize(method, path, controller, action)
         @method = method
         @path = path
+        @pattern = Regexp.new(pattern(path))
         @controller = controller
         @action = action
       end
 
       def match?(method, path)
-        @method == method && path.match(@path)
+        return false unless @method == method
+        @match_data = @pattern.match(path)
+      end
+
+      def pattern(path)
+        '^' +
+          path
+            .gsub('.', '\.')
+            .gsub(/:(\w+)/, '(?<\1>[^/]+)')
+            + '$'
+      end
+
+      def params
+        return {} unless @match_data
+        @match_data.named_captures.transform_keys(&:to_sym)
       end
     end
   end

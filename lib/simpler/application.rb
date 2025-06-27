@@ -31,6 +31,8 @@ module Simpler
         return not_found_response
       end
 
+      env['simpler.route_params'] = route.params
+
       controller = route.controller.new(env)
       action = route.action
 

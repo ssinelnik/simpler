@@ -12,6 +12,11 @@ module Simpler
       @name = extract_name
       @request = Rack::Request.new(env)
       @response = Rack::Response.new
+      @route_params = env['simpler.route_params'] || {}
+    end
+
+    def params
+      @route_params.merge(@request.params.transform_keys(&:to_sym))
     end
 
     def make_response(action)
