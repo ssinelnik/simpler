@@ -3,6 +3,6 @@
 # A controller for working with tests
 class TestsController < Simpler::Controller
   def index
-    @tests = Test.all
+    render plain: "Plain text response"
   end
 end
