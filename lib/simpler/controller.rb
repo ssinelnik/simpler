@@ -66,5 +66,9 @@ module Simpler
         raise ArgumentError, "Invalid render argument: #{spec.inspect}"
       end
     end
+
+    def status(code)
+      @response.status = code.to_i
+    end
   end
 end
